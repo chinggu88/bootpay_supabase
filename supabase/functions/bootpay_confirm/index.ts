@@ -4,13 +4,10 @@
 
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-
-console.log("Hello from Functions!")
+import { corsHeaders } from '../_shared/_cors.ts'
 
 interface CancelPaymentRequest {
   receipt_id: string;
-  cancel_price: number;
-  cancel_reason: string;
 }
 
 interface BootpayTokenResponse {
@@ -19,8 +16,12 @@ interface BootpayTokenResponse {
 
 Deno.serve(async (req) => {
   try {
+    // CORS 처리
+    if (req.method === 'OPTIONS') {
+      return new Response('ok', { headers: corsHeaders })
+    }
     // 요청 데이터 파싱
-    const { receipt_id, cancel_price, cancel_reason }: CancelPaymentRequest = await req.json()
+    const { receipt_id }: CancelPaymentRequest = await req.json()
 
     console.log('Deno.env.get', Deno.env.get('BOOTPAY_APPLICATION_ID'))
     console.log('Deno.env.get', Deno.env.get('BOOTPAY_PRIVATE_KEY'))

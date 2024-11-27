@@ -4,13 +4,10 @@
 
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-
-console.log("Hello from Functions!")
+import { corsHeaders } from '../_shared/_cors.ts'
 
 interface CancelPaymentRequest {
   receipt_id: string;
-  cancel_price: number;
-  cancel_reason: string;
 }
 
 interface BootpayTokenResponse {
@@ -19,8 +16,12 @@ interface BootpayTokenResponse {
 
 Deno.serve(async (req) => {
   try {
+    // CORS 처리
+    if (req.method === 'OPTIONS') {
+      return new Response('ok', { headers: corsHeaders })
+    }
     // 요청 데이터 파싱
-    const { receipt_id, cancel_price, cancel_reason }: CancelPaymentRequest = await req.json()
+    const { receipt_id }: CancelPaymentRequest = await req.json()
     
     console.log('Deno.env.get', Deno.env.get('BOOTPAY_APPLICATION_ID'))
     console.log('Deno.env.get', Deno.env.get('BOOTPAY_PRIVATE_KEY'))
@@ -37,13 +38,7 @@ Deno.serve(async (req) => {
     })
 
     const { access_token }: BootpayTokenResponse = await tokenResponse.json()
-    console.log('Hello from Functions! ${CancelPaymentRequest}')
-    console.log(access_token)
-    console.log(JSON.stringify({
-      'receipt_id':receipt_id,
-      'cancel_price':cancel_price,
-      'cancel_reason':cancel_reason,
-    }))
+    
     
     // 결제 취소 요청
     const cancelResponse = await fetch(`https://api.bootpay.co.kr/v2/cancel`, {
@@ -58,7 +53,7 @@ Deno.serve(async (req) => {
     })
 
     const cancelResult = await cancelResponse.json()
-    console.log(cancelResult)
+
     return new Response(JSON.stringify(cancelResult), {
       headers: { 'Content-Type': 'application/json' },
       status: 200,
