@@ -4,10 +4,11 @@
 
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-import { corsHeaders } from '../_shared/_cors.ts'
+import { corsHeaders } from '../_shared/cors.ts'
 console.log("Hello from Functions!")
 
 Deno.serve(async (req) => {
+  console.log("Hello Functions CORS " + req.method)
   // CORS 처리
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -18,7 +19,7 @@ Deno.serve(async (req) => {
 
   return new Response(
     JSON.stringify(data),
-    { headers: { "Content-Type": "application/json" } },
+    { headers: { ...corsHeaders,"Content-Type": "application/json" } },
   )
 })
 
